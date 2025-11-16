@@ -42,7 +42,7 @@ any() {
       return 0
     fi
   done
-  return 1  # No conditions matched
+  return 1 # No conditions matched
 }
 
 NOTIFY=no
@@ -121,7 +121,16 @@ printUsageMsg() {
 }
 
 notify() {
-  notify-send -t 3000 -a grimshot "$@"
+  if [ "$ACTION" = "copy" ]; then
+    notify-send -t 3000 -a grimshot "$@"
+  else
+    action=$(notify-send -t 3000 -a grimshot --action=file='Open File' --action=dir='Open Directory' "$@")
+    if [ "$action" = "file" ]; then
+      xdg-open "$FILE"
+    elif [ "$action" = "dir" ]; then
+      xdg-open "$(dirname "$FILE")"
+    fi
+  fi
 }
 
 notifyOk() {
@@ -129,7 +138,7 @@ notifyOk() {
   action_involves_saving='[ "$ACTION" = "save" ] || [ "$ACTION" = "savecopy" ]'
 
   if eval $notify_disabled; then
-	  return
+    return
   fi
 
   TITLE=${2:-"Screenshot"}
@@ -193,6 +202,7 @@ checkRequiredTools() {
   check wl-copy
   check jq
   check notify-send
+  check xdg-open
   exit
 }
 
